@@ -20,6 +20,7 @@ BomPixel is a pixel-art battle arena inspired by classic tactical shooters: pick
 
 - [Features](#features)
 - [Quick Start](#quick-start)
+- [Database & Maintenance](#database--maintenance)
 - [How to Play](#how-to-play)
 - [Game Systems](#game-systems)
 - [Admin Panel](#admin-panel)
@@ -83,28 +84,98 @@ BomPixel is a pixel-art battle arena inspired by classic tactical shooters: pick
 
 ## Quick Start
 
-**Requirements:** Node.js **≥ 22.5** (for the built-in `node:sqlite`; Node 24 recommended). No compilers, no native modules.
+### 1 · Prerequisites
+
+- **Node.js ≥ 22.5** — required for the built-in `node:sqlite` module (Node **24 LTS recommended**). No compilers, no native modules, works the same on Windows / macOS / Linux.
+
+```bash
+node -v    # must print v22.5.0 or newer
+```
+
+If it's older, install the current LTS from [nodejs.org](https://nodejs.org) (or `nvm install --lts`).
+
+### 2 · Install & run
 
 ```bash
 git clone <your-repo-url> bompixel
 cd bompixel
-npm install
+npm install        # express, socket.io, three — that's all
 npm start
+```
+
+You should see the BomPixel banner and:
+
+```
+[db] Admin hesabi olusturuldu -> kullanici: admin  sifre: admin123
+[db] Varsayilan harita "Piksel Sehir" olusturuldu.
+  BomPixel calisiyor -> http://localhost:3000
+  Mobil/tablet icin (ayni ag): http://192.168.x.x:3000
+  Admin paneli -> http://localhost:3000/admin
 ```
 
 - Game: **http://localhost:3000**
 - Admin panel: **http://localhost:3000/admin**
-- Phones/tablets on the same Wi-Fi: the console prints a `http://<LAN-IP>:3000` URL
+- Phones/tablets on the same Wi-Fi: use the printed `http://<LAN-IP>:3000` URL (allow Node through the OS firewall when prompted the first time)
 
-On first start the server seeds the database with:
+### 3 · First run
+
+Everything is seeded automatically on first start — there are no migration commands to run:
 
 | What | Value |
 |---|---|
-| Admin account | `admin` / `admin123` — **change this immediately** |
+| Admin account | `admin` / `admin123` — **change this immediately** (see below) |
 | Default map | *Piksel Şehir* — a procedurally generated 96×96 m city with roads, a river, a park with a pond, hills, enterable buildings and billboards |
 | Weapon types | Pistol, Auto Rifle, Shotgun, Sniper (scoped beam), Laser |
 
-> ⚠️ The SQLite database is created at `data/bompixel.db`. It contains password hashes and session tokens — it is `.gitignore`d and must never be committed.
+**Securing the admin account:** register a normal account in the game, open `/admin` as `admin`, go to **Üyeler (Users)** and grant your own account admin, then delete (or stop using) the seeded `admin` user.
+
+### 4 · Play
+
+Open the game, hit **Kayıt Ol (Register)**, draw your pixel character, pick a map + bots, and press **SAVAŞA GİR**.
+
+---
+
+## Database & Maintenance
+
+All persistent state lives in a single SQLite file: **`data/bompixel.db`** (WAL mode, so `-wal`/`-shm` sidecar files appear next to it while the server runs). It is created automatically and is `.gitignore`d — it contains **password hashes and session tokens, never commit it**.
+
+### Factory reset (wipe everything)
+
+Stop the server, delete the data directory, start again — the seed runs from scratch (fresh `admin/admin123`, fresh city map):
+
+```bash
+# Linux / macOS
+rm -rf data && npm start
+
+# Windows (PowerShell)
+Remove-Item -Recurse -Force data; npm start
+```
+
+> Prefer a reversible reset? Rename instead of deleting:
+> `mv data/bompixel.db data/backup-$(date +%Y%m%d).db` (also move the `-wal`/`-shm` files), then `npm start`.
+
+### Backup & restore
+
+```bash
+# backup (server stopped, or copy all three files together)
+cp data/bompixel.db data/backup-2026-08-07.db
+
+# restore
+# 1. stop the server
+# 2. delete data/bompixel.db, data/bompixel.db-wal, data/bompixel.db-shm
+# 3. copy your backup to data/bompixel.db
+# 4. npm start
+```
+
+### Updating to a new version
+
+```bash
+git pull
+npm install     # in case dependencies changed
+npm start
+```
+
+Schema changes are handled by lightweight automatic migrations in `server/db.js` (`addColumn`) — existing databases are upgraded in place on boot; players just hard-refresh once (`Ctrl+Shift+R`) to pick up the new client.
 
 ---
 
@@ -322,7 +393,7 @@ npm test
 | Port | `PORT=8080 npm start` (default 3000) |
 | LAN play | Server binds `0.0.0.0`; the console prints LAN URLs for phones/tablets |
 | Reverse proxy | Terminate TLS in front (nginx/Caddy); allow WebSocket upgrade for `/socket.io/` |
-| Data | Back up `data/bompixel.db` (WAL mode); delete it to factory-reset |
+| Data | Single SQLite file — see [Database & Maintenance](#database--maintenance) for reset/backup/restore |
 
 Production notes: put it behind HTTPS (pointer lock and fullscreen behave best in secure contexts), change the seeded admin password on day one, and consider raising the scrypt cost / adding rate limiting before exposing it to the open internet.
 
@@ -355,6 +426,8 @@ Ideas that fit the codebase well — PRs welcome:
 ---
 
 ## Contributing
+
+> 🤖 **Developing with an AI assistant?** Start with **[AI Development.md](AI%20Development.md)** — a complete technical brief (architecture, invariants, pitfalls, data formats, step-by-step recipes) written specifically for AI-assisted development.
 
 1. Fork, branch, hack. There is no build step — edit and refresh.
 2. **Keep the twin geometry in sync**: any change to `buildWalls` / `heightAt` / `insideBuilding` must be applied to both `server/game.js` and `public/js/world.js`.

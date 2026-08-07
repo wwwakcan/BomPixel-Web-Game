@@ -4,18 +4,38 @@
 
 [English README](README.md) · Node.js + Socket.IO + SQLite + Three.js · MIT Lisansı
 
-## Hızlı Başlangıç
+## Kurulum
 
-Gereksinim: Node.js **≥ 22.5** (yerleşik `node:sqlite` için; Node 24 önerilir).
+1. **Node.js ≥ 22.5** kurulu olmalı (yerleşik `node:sqlite` için; **Node 24 önerilir**) — `node -v` ile kontrol edin
+2. Projeyi indirin ve bağımlılıkları kurun:
 
 ```bash
+git clone <repo-adresi> bompixel
+cd bompixel
 npm install
 npm start
 ```
 
 - Oyun: **http://localhost:3000** · Admin: **http://localhost:3000/admin**
-- Telefon/tablet (aynı Wi-Fi): konsolda yazan `http://<IP>:3000`
-- Varsayılan admin: `admin` / `admin123` — **hemen değiştirin!**
+- Telefon/tablet (aynı Wi-Fi): konsolda yazan `http://<IP>:3000` (ilk açılışta güvenlik duvarı izni verin)
+- İlk açılışta her şey otomatik kurulur: `admin` / `admin123` hesabı + "Piksel Şehir" haritası + 5 silah tipi. **Admin şifresini hemen değiştirin** (normal hesap açın, admin panelinden kendi hesabınıza yetki verin).
+
+## Veritabanı: sıfırlama / yedekleme
+
+Tüm veriler tek dosyada: `data/bompixel.db` (şifre hash'leri içerir, **asla repoya eklemeyin** — `.gitignore`'da).
+
+```powershell
+# SIFIRLA (fabrika ayarları): sunucuyu durdur, sil, yeniden başlat
+Remove-Item -Recurse -Force data; npm start     # Windows
+# rm -rf data && npm start                      # Linux/macOS
+
+# YEDEKLE: sunucu kapalıyken kopyala
+Copy-Item data\bompixel.db data\yedek-2026-08-07.db
+
+# GERİ YÜKLE: sunucu kapalıyken bompixel.db (+ -wal/-shm) sil, yedeği bompixel.db adıyla koy
+```
+
+Güncelleme: `git pull && npm install && npm start` — şema değişiklikleri açılışta otomatik uygulanır; oyuncular bir kez `Ctrl+Shift+R` yapar.
 
 ## Öne Çıkanlar
 
