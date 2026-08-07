@@ -1,0 +1,34 @@
+{
+  "name": "bompixel",
+  "version": "1.0.0",
+  "description": "Real-time multiplayer 3D voxel FPS in the browser — pixel skins, C4, smart bots, live-editable maps. No CDNs, no build step.",
+  "main": "server/index.js",
+  "type": "commonjs",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "keywords": [
+    "game",
+    "fps",
+    "voxel",
+    "pixel-art",
+    "multiplayer",
+    "threejs",
+    "socket-io",
+    "sqlite",
+    "browser-game"
+  ],
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node test/bot.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5",
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.7.5"
+  }
+}

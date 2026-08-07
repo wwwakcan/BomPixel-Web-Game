@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>BomPixel — 3D Piksel Savas Arenasi</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>💥</text></svg>">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="toasts"></div>
+
+<!-- ================= GIRIS ================= -->
+<div id="screen-auth" class="screen">
+  <div class="auth-bg"></div>
+  <div class="auth-card">
+    <h1 class="logo">Bom<span>Pixel</span></h1>
+    <p class="tagline">3D piksel online savas arenasi 💥</p>
+    <div class="tabs">
+      <button id="tab-login" class="tab active">Giris Yap</button>
+      <button id="tab-register" class="tab">Kayit Ol</button>
+    </div>
+    <div id="login-form">
+      <input id="li-user" placeholder="Kullanici adi" autocomplete="username">
+      <input id="li-pass" type="password" placeholder="Sifre" autocomplete="current-password">
+      <button id="btn-login" class="btn primary big">OYUNA GIR ➜</button>
+    </div>
+    <div id="register-form" class="hidden">
+      <input id="rg-user" placeholder="Kullanici adi (3-16)" autocomplete="username">
+      <input id="rg-email" type="email" placeholder="E-posta" autocomplete="email">
+      <input id="rg-pass" type="password" placeholder="Sifre" autocomplete="new-password">
+      <button id="btn-register" class="btn primary big">HESAP AC ➜</button>
+    </div>
+    <p id="auth-err" class="err"></p>
+    <p class="dim small">W/S yuru · Space zipla · 1/2/3 silah · B magaza · mobilde joystick 🎮</p>
+  </div>
+</div>
+
+<!-- ================= SKIN EDITORU ================= -->
+<div id="screen-skin" class="screen hidden">
+  <div class="editor-wrap">
+    <h2 id="skin-title">Karakterini Yap!</h2>
+    <div class="editor-cols">
+      <div class="editor-left">
+        <div class="toolbar">
+          <button data-tool="pen" class="btn tool active" title="Kalem">✏️</button>
+          <button data-tool="eraser" class="btn tool" title="Silgi">🧽</button>
+          <button data-tool="fill" class="btn tool" title="Doldur">🪣</button>
+          <button class="btn tool btn-mirror" title="Ayna (simetri)">🪞</button>
+          <button class="btn tool btn-undo" title="Geri al">↩️</button>
+          <button class="btn tool btn-clear" title="Temizle">🗑️</button>
+        </div>
+        <canvas id="skin-canvas" width="360" height="540"></canvas>
+        <div class="palette"></div>
+        <div class="emoji-row"><span class="lbl">Emoji bas:</span></div>
+      </div>
+      <div class="editor-right">
+        <div class="preview-box"><div id="skin-preview3d" class="prev3d"></div><small>3D onizleme</small></div>
+        <div class="panel mini">
+          <b>✨ Hareketli Emoji</b>
+          <small class="dim">Kafanin ustunde herkes gorur</small>
+          <div class="row">
+            <input id="skin-emoji" placeholder="🙂" maxlength="4" style="width:64px;text-align:center">
+            <select id="skin-emoji-anim" class="btn grow">
+              <option value="zipla">⬆ Zipla</option>
+              <option value="don">🔄 Don</option>
+              <option value="buyu">💗 Buyu-Kucul</option>
+            </select>
+          </div>
+          <div class="emoji-quick"></div>
+        </div>
+        <label class="btn file-btn">📷 Gorselden Piksele Cevir<input type="file" class="img-import" accept="image/*" hidden></label>
+        <select id="skin-templates" class="btn">
+          <option value="">🧩 Sablon sec...</option>
+          <option value="asker">Asker</option>
+          <option value="robot">Robot</option>
+          <option value="uzayli">Uzayli</option>
+          <option value="hayalet">Hayalet</option>
+        </select>
+        <button id="btn-skin-save" class="btn primary big">KAYDET ✓</button>
+        <button id="btn-skin-back" class="btn">← Ana Menu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ANA MENU (CS tarzi) ================= -->
+<div id="screen-main" class="screen hidden">
+  <div class="main-bg"></div>
+  <header class="topbar">
+    <h1 class="logo small">Bom<span>Pixel</span></h1>
+    <nav class="mainnav">
+      <button class="nav-btn active" data-page="home">⚔️ SAVAS</button>
+      <button class="nav-btn" data-page="inventory">🎒 ENVANTER</button>
+      <button id="nav-character" class="nav-btn">🧍 KARAKTER</button>
+      <button class="nav-btn" data-page="groups">🛡️ GRUPLAR</button>
+    </nav>
+    <div class="lobby-user">
+      <span class="hide-sm">👤 <b id="lb-username"></b></span>
+      <a id="lb-admin-link" class="btn tiny hidden" href="/admin" target="_blank">⚙️</a>
+      <button id="btn-logout" class="btn tiny">Cikis</button>
+    </div>
+  </header>
+
+  <!-- SAVAS sayfasi -->
+  <div id="page-home" class="page">
+    <div class="home-grid">
+      <div class="hero-panel">
+        <div class="hero-me">
+          <canvas id="lb-skin-canvas" width="96" height="144"></canvas>
+          <div>
+            <h2 id="hero-name">-</h2>
+            <p class="dim" id="hero-team">Tekil oynuyorsun</p>
+            <div id="hero-loadout" class="hero-loadout"></div>
+          </div>
+        </div>
+        <div class="hero-map">
+          <p class="lbl">SECILI HARITA</p>
+          <h3 id="sel-map-name">-</h3>
+          <p class="dim small" id="sel-map-info"></p>
+        </div>
+        <div class="hero-bots">
+          <p class="lbl">🤖 BOTLAR</p>
+          <div class="row">
+            <select id="bot-count" class="btn grow">
+              <option value="0">Bot yok</option>
+              <option value="2">2 bot</option>
+              <option value="4" selected>4 bot</option>
+              <option value="6">6 bot</option>
+              <option value="8">8 bot</option>
+            </select>
+            <select id="bot-level" class="btn grow">
+              <option value="kolay">😊 Kolay</option>
+              <option value="normal" selected>😐 Normal</option>
+              <option value="zor">😈 Zor (C4 kurar/cozer)</option>
+            </select>
+          </div>
+        </div>
+        <button id="btn-play" class="btn primary huge">▶ SAVASA GIR</button>
+        <p class="dim small">W/S yuru · Space zipla · 1/2/3/4 + scroll silah · sag tik: durbun/C4 · E: C4 coz · Tab: oyuncular</p>
+      </div>
+      <div class="maps-panel">
+        <h3>🗺️ HARITA SEC</h3>
+        <div id="map-cards" class="map-cards"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENVANTER sayfasi -->
+  <div id="page-inventory" class="page hidden">
+    <div class="inv-grid">
+      <section class="panel">
+        <h3>⚔️ SAVAS YUKLEMESI <small class="dim">(oyunda 1 / 2 / 3)</small></h3>
+        <div id="loadout-slots" class="loadout-slots"></div>
+        <div class="c4-card">
+          <span class="c4-big">💣</span>
+          <div class="grow"><b>C4 Patlayici</b><small class="dim">Slot 4 · sag tik ile kur · dusman cozerse +3 puan · 35 sn sayac</small></div>
+        </div>
+      </section>
+      <section class="panel">
+        <h3>🔫 SILAH KOLEKSIYONUM</h3>
+        <p class="dim small">Kendi silahina emoji sticker yapistir: her sticker <b>+%4 hasar</b> (max 3). Stickerlar oyunda animasyonlu gorunur!</p>
+        <div id="weapon-list" class="scroll-list tall"></div>
+        <button id="btn-new-weapon" class="btn primary">+ Yeni Silah Skini Yap</button>
+      </section>
+    </div>
+  </div>
+
+  <!-- GRUPLAR sayfasi -->
+  <div id="page-groups" class="page hidden">
+    <div class="lobby-grid">
+      <section class="panel">
+        <h3>🛡️ Gruplarim</h3>
+        <div class="row">
+          <input id="group-create-name" placeholder="Yeni grup adi" maxlength="20">
+          <button id="btn-create-group" class="btn tiny primary">Kur</button>
+        </div>
+        <div id="groups-list" class="scroll-list"></div>
+      </section>
+      <section class="panel">
+        <h3>📩 Davetler</h3>
+        <div id="invites-list"></div>
+      </section>
+      <section class="panel">
+        <h3>🌐 Cevrimici (<span id="online-count">0</span>)</h3>
+        <div id="online-list" class="scroll-list"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SILAH SEC (loadout slotu icin) ================= -->
+<div id="modal-pick" class="modal hidden">
+  <div class="modal-box narrow">
+    <h2>Slot <span id="pick-slot-no">1</span> icin silah sec</h2>
+    <div id="pick-list" class="scroll-list tall"></div>
+    <button id="btn-pick-close" class="btn">Kapat</button>
+  </div>
+</div>
+
+<!-- ================= SILAH EDITORU (modal) ================= -->
+<div id="modal-weapon" class="modal hidden">
+  <div class="modal-box">
+    <h2>🔫 Silah Skini Yap</h2>
+    <div class="editor-cols">
+      <div class="editor-left">
+        <div class="toolbar">
+          <button data-tool="pen" class="btn tool active">✏️</button>
+          <button data-tool="eraser" class="btn tool">🧽</button>
+          <button data-tool="fill" class="btn tool">🪣</button>
+          <button class="btn tool btn-undo">↩️</button>
+          <button class="btn tool btn-clear">🗑️</button>
+        </div>
+        <canvas id="weap-canvas" width="480" height="300"></canvas>
+        <div class="palette"></div>
+        <div class="emoji-row"><span class="lbl">Emoji:</span></div>
+      </div>
+      <div class="editor-right">
+        <div class="preview-box"><div id="weap-preview3d" class="prev3d"></div><small>3D onizleme</small></div>
+        <input id="weap-name" placeholder="Silah adi" maxlength="24">
+        <label class="lbl">Atis tipi</label>
+        <select id="weap-type" class="btn"></select>
+        <p id="weap-stats" class="dim small"></p>
+        <label class="lbl">Ates animasyonu (sen sec!)</label>
+        <select id="weap-anim" class="btn">
+          <option value="klasik">💥 Klasik parlama</option>
+          <option value="alev">🔥 Alev agzi</option>
+          <option value="lazer">⚡ Lazer izi</option>
+          <option value="enerji">🌀 Enerji halkasi</option>
+        </select>
+        <label class="lbl">Iz / mermi rengi</label>
+        <input id="weap-color" type="color" value="#ffdd33" class="btn">
+        <label class="lbl">Stickerlar (+%4 hasar / adet)</label>
+        <input id="weap-stickers" placeholder="🔥⭐⚡ (max 3 emoji)" maxlength="12">
+        <label class="btn file-btn">📷 Gorselden Cevir<input type="file" class="img-import" accept="image/*" hidden></label>
+        <button id="btn-weap-save" class="btn primary">KAYDET ✓</button>
+        <button id="btn-weap-close" class="btn">Kapat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= OYUN ================= -->
+<div id="screen-game" class="screen hidden">
+  <canvas id="game-canvas"></canvas>
+
+  <!-- HUD -->
+  <div id="scoreboard">
+    <div class="sb-head">🏆 TOP 10</div>
+    <div id="sb-rows"></div>
+  </div>
+  <canvas id="minimap" width="160" height="160"></canvas>
+  <div id="killfeed"></div>
+  <div id="round-timer">08:00</div>
+  <div id="c4-timer" class="hidden"><span class="c4-fuse">💣</span> --</div>
+  <div id="hud-bottom">
+    <div id="hp-wrap"><div id="hp-fill"></div><span id="hp-num">100</span></div>
+    <div id="hud-weapon-name">-</div>
+  </div>
+
+  <!-- Sag altta dikey silah slotlari -->
+  <div id="weapon-slots"></div>
+
+  <!-- Durbun -->
+  <div id="scope" class="hidden">
+    <div class="scope-ring"></div>
+    <div class="scope-cross-h"></div>
+    <div class="scope-cross-v"></div>
+  </div>
+
+  <!-- C4 kurma/cozme -->
+  <div id="action-bar" class="hidden">
+    <div id="action-label">💣 C4 KURULUYOR...</div>
+    <div class="action-track"><div id="action-fill"></div></div>
+  </div>
+  <div id="defuse-prompt" class="hidden">✂️ <b>E</b> (basili tut) — C4'u COZ (+3 puan)</div>
+
+  <div id="crosshair">+</div>
+  <div id="hitmarker">✕</div>
+  <div id="dmg-flash"></div>
+  <div id="center-msg"></div>
+
+  <div id="tab-list" class="hidden">
+    <div class="panel">
+      <h3>Oyuncular <small class="dim">(Tab ile kapat · davet gonderebilirsin)</small></h3>
+      <div id="tab-rows"></div>
+    </div>
+  </div>
+
+  <!-- Silah magazasi (B) -->
+  <div id="shop" class="hidden">
+    <div class="panel shop-panel">
+      <h3>🛒 SILAH MAGAZASI <small class="dim">(B ile kapat · silaha tikla, slotunu sec)</small></h3>
+      <div id="shop-rows" class="scroll-list tall"></div>
+      <button id="btn-shop-close" class="btn">Kapat (B)</button>
+    </div>
+  </div>
+
+  <div id="round-over" class="hidden"></div>
+
+  <div id="game-menu" class="hidden">
+    <div class="panel">
+      <h2>⏸ MENU</h2>
+      <button id="btn-resume" class="btn primary big">Devam Et</button>
+      <button id="btn-exit" class="btn big">Ana Menu</button>
+      <p class="dim small">W/S yuru · Space zipla · 1/2/3/4 silah · scroll degistir · sag tik durbun/C4 · E coz · Tab oyuncular</p>
+    </div>
+  </div>
+
+  <!-- Mobil kontroller -->
+  <div id="m-controls">
+    <div id="joy-base" class="hidden"><div id="joy-knob"></div></div>
+    <button id="btn-fire">🔥</button>
+    <button id="btn-jump">⬆️</button>
+    <button id="btn-zoom" class="hidden">🔭</button>
+    <button id="btn-action" class="hidden">💣 KUR</button>
+    <div id="m-topbar">
+      <button id="btn-sb-m" class="btn tiny">🏆</button>
+      <button id="btn-shop-m" class="btn tiny">🛒</button>
+      <button id="btn-tab-m" class="btn tiny">👥</button>
+      <button id="btn-menu-m" class="btn tiny">✕</button>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script type="module" src="/js/main.js"></script>
+</body>
+</html>

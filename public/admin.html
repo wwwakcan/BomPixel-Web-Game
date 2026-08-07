@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BomPixel — Admin Paneli</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>⚙️</text></svg>">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  body { overflow: auto; }
+  .admin-wrap { max-width: 1200px; margin: 0 auto; padding: 14px; }
+  .a-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+  .a-section { margin-top: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { border-bottom: 1px solid #2a2a40; padding: 6px 8px; text-align: left; }
+  th { color: #ffd23f; }
+  td input { margin: 0; padding: 5px 7px; font-size: 13px; }
+  td input.num { width: 70px; }
+  #me-canvas { border: 3px solid #454565; border-radius: 4px; background: #101018; cursor: crosshair; touch-action: none; max-width: 100%; }
+  .me-toolbar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
+  .me-toolbar .btn.active { background: #e8632c; border-color: #ff9558; }
+  .me-opt { display: flex; gap: 4px; align-items: center; font-size: 12px; }
+  .me-opt input, .me-opt select { width: auto; margin: 0; padding: 4px 6px; }
+  .sign-row { display: grid; grid-template-columns: 60px 1fr auto; gap: 8px; align-items: center; background: #232336; border: 2px solid #3a3a55; border-radius: 4px; padding: 8px; margin-bottom: 6px; }
+  .sign-row .cfg { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .sign-row input[type=text] { width: 200px; margin: 0; padding: 5px 7px; }
+  .sign-row input[type=color] { width: 46px; height: 30px; padding: 2px; margin: 0; }
+  .sign-row input[type=file] { width: 220px; margin: 0; }
+  .kbadge { background: #2f6f4f; font-size: 10px; padding: 2px 6px; border-radius: 3px; }
+  .stat-row { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 10px; font-size: 15px; }
+  .stat-row b { color: #ffd23f; }
+</style>
+</head>
+<body>
+<div id="toasts"></div>
+<div class="admin-wrap">
+  <header style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <h1 class="logo small">Bom<span>Pixel</span> <small style="color:#8890a8">ADMIN</small></h1>
+    <a class="btn tiny" href="/">← Oyuna Don</a>
+  </header>
+
+  <div id="admin-guard" class="panel hidden" style="margin-top:14px">
+    <h3>🔒 Yetki gerekli</h3>
+    <p>Bu sayfa icin admin hesabiyla <a href="/" style="color:#ffd23f">oyuna giris</a> yapmalisiniz.</p>
+  </div>
+
+  <div id="admin-main" class="hidden">
+    <div class="a-tabs">
+      <button class="btn a-tab active" data-tab="live">📡 Canli</button>
+      <button class="btn a-tab" data-tab="maps">🗺️ Haritalar</button>
+      <button class="btn a-tab" data-tab="signs">📢 Tabelalar / Reklamlar</button>
+      <button class="btn a-tab" data-tab="weapons">🔫 Silah Tipleri</button>
+      <button class="btn a-tab" data-tab="users">👥 Uyeler</button>
+      <button class="btn a-tab" data-tab="matches">📜 Gecmis Oyunlar</button>
+    </div>
+
+    <section id="tab-live" class="a-section panel">
+      <div class="stat-row">
+        <span>Cevrimici: <b id="lv-online">-</b></span>
+        <span>Arenada: <b id="lv-arena">-</b></span>
+        <span>Harita: <b id="lv-map">-</b></span>
+        <span>Tur bitis: <b id="lv-round">-</b></span>
+      </div>
+      <button id="btn-new-round" class="btn">🔁 Turu Simdi Bitir / Yeni Tur</button>
+      <h4 style="margin-top:12px">Arenadaki oyuncular</h4>
+      <div id="lv-players" class="dim small">-</div>
+    </section>
+
+    <section id="tab-maps" class="a-section panel hidden">
+      <div id="maps-home">
+        <button id="btn-new-map" class="btn primary">+ Yeni Harita Yap</button>
+        <div id="maps-list" style="margin-top:10px"></div>
+      </div>
+      <div id="map-editor" class="hidden">
+        <div class="me-toolbar">
+          <input id="me-name" placeholder="Harita adi" style="width:180px;margin:0">
+          <span class="me-opt">Boyut: <input id="me-w" class="num" type="number" min="16" max="256" value="64"> x <input id="me-h" class="num" type="number" min="16" max="256" value="64"> m
+            <button id="btn-me-resize" class="btn tiny">Uygula</button></span>
+          <button id="btn-map-save" class="btn tiny primary">💾 Kaydet</button>
+          <button id="btn-map-back" class="btn tiny">← Geri</button>
+        </div>
+        <div class="me-toolbar">
+          <button class="btn tiny me-tool active" data-mtool="ground">🌱 Zemin</button>
+          <button class="btn tiny me-tool" data-mtool="road">🛣️ Yol</button>
+          <button class="btn tiny me-tool" data-mtool="water">💧 Su</button>
+          <button class="btn tiny me-tool" data-mtool="park">🌳 Park</button>
+          <button class="btn tiny me-tool" data-mtool="raise">⛰️ Yukselt</button>
+          <button class="btn tiny me-tool" data-mtool="lower">🕳️ Alcalt</button>
+          <button class="btn tiny me-tool" data-mtool="building">🏢 Bina</button>
+          <button class="btn tiny me-tool" data-mtool="sign">📢 Tabela</button>
+          <button class="btn tiny me-tool" data-mtool="spawn">⭐ Dogum</button>
+          <button class="btn tiny me-tool" data-mtool="erase">❌ Sil</button>
+          <span class="me-opt">Firca <select id="me-brush"><option>1</option><option>3</option><option>5</option></select></span>
+        </div>
+        <div class="me-toolbar">
+          <span class="me-opt">Bina: yukseklik <input id="me-bheight" class="num" type="number" min="2" max="8" value="4">
+            kapi <select id="me-bdoor"><option value="S">Guney</option><option value="N">Kuzey</option><option value="E">Dogu</option><option value="W">Bati</option></select>
+            renk <input id="me-bcolor" type="color" value="#b0574a"></span>
+          <span class="me-opt">Tabela yonu <select id="me-signside"><option value="S">Guney</option><option value="N">Kuzey</option><option value="E">Dogu</option><option value="W">Bati</option></select></span>
+          <span id="me-status" class="dim small"></span>
+        </div>
+        <canvas id="me-canvas" width="640" height="640"></canvas>
+        <p class="dim small">Bina: surukleyerek dikdortgen ciz · Tabela/Dogum: tikla · Sil: bina/tabela/dogum uzerine tikla · Binaya girilebilir olmasi icin kapi yonunu bos birakin (duvara bitisik bina cizmeyin)</p>
+      </div>
+    </section>
+
+    <section id="tab-signs" class="a-section panel hidden">
+      <p class="dim small">Aktif haritadaki tabelalar. Kaydettiginiz anda oyundaki HERKESTE canli degisir. Gorsel reklamlar "piksel" isaretliyse piksellestirilir, degilse normal gorunur.</p>
+      <div id="signs-list" style="margin-top:10px"></div>
+    </section>
+
+    <section id="tab-weapons" class="a-section panel hidden">
+      <p class="dim small">Silahlarin oldurme gucu ve atis tipleri. Degisiklik aninda oyuna yansir.</p>
+      <table>
+        <thead><tr><th>ID</th><th>Ad</th><th>Hasar</th><th>Aralik(ms)</th><th>Hiz(m/s)</th><th>Menzil</th><th>Sacma</th><th>Oto</th><th>Isin</th><th></th></tr></thead>
+        <tbody id="wt-rows"></tbody>
+      </table>
+    </section>
+
+    <section id="tab-users" class="a-section panel hidden">
+      <table>
+        <thead><tr><th>ID</th><th>Kullanici</th><th>E-posta</th><th>Durum</th><th>Admin</th><th></th></tr></thead>
+        <tbody id="users-rows"></tbody>
+      </table>
+    </section>
+
+    <section id="tab-matches" class="a-section panel hidden">
+      <div id="matches-rows"></div>
+    </section>
+  </div>
+</div>
+<script src="/js/admin.js"></script>
+</body>
+</html>
